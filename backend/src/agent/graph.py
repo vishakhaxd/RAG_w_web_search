@@ -1,5 +1,5 @@
 import os
-
+from pathlib import Path
 from agent.tools_and_schemas import SearchQueryList, Reflection
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage
@@ -30,6 +30,7 @@ from agent.utils import (
     insert_citation_markers,
     resolve_urls,
 )
+from agent.rag_retriever import (retriever)
 
 load_dotenv()
 
@@ -177,6 +178,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
         "follow_up_queries": result.follow_up_queries,
         "research_loop_count": state["research_loop_count"],
         "number_of_ran_queries": len(state["search_query"]),
+        "search_query":        state["search_query"], 
     }
 
 
@@ -265,29 +267,74 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     }
 
 
+def retrieve_from_docs(state: OverallState, config: RunnableConfig) -> OverallState:
+    """
+    Pulls top‑k chunks from the local vector store and formats them exactly
+    like `web_research` so reflection can consume them without changes.
+    """
+    # Use the first generated query (string or {'query': str})
+    first_q = state["search_query"][0]
+    q_text  = first_q["query"] if isinstance(first_q, dict) else first_q
+
+    docs = retriever.get_relevant_documents(q_text)
+    if not docs:
+        return {"web_research_result": [], "sources_gathered": []}
+
+    chunks, sources = [], []
+    for idx, doc in enumerate(docs):
+        snippet = doc.page_content.strip()
+        raw_path = doc.metadata.get("source", f"internal_{idx}.txt")
+        filename = Path(raw_path).name              # chatgpt.txt
+        src_url  = f"rag://{filename}"      
+        short   = f"[S{idx}]"
+        chunks.append(f"{snippet}\n\n{short}")
+        sources.append({"value": src_url, "short_url": short})
+
+    return {
+        "web_research_result": ["\n---\n\n".join(chunks)],
+        "sources_gathered":    sources,
+    }
+
+
+def decide_after_reflection(state: ReflectionState):
+    """
+    If RAG was *not* sufficient on the very first loop,
+    send *all* original queries to Google in parallel.
+    Otherwise defer to the normal evaluate_research logic.
+    """
+    if not state["is_sufficient"] and state["research_loop_count"] == 1:
+        # first pass failed – fan‑out initial queries
+        return continue_to_web_research(state)
+    # else keep the existing loop behaviour
+    return evaluate_research(state, {})
+
+
 # Create our Agent Graph
 builder = StateGraph(OverallState, config_schema=Configuration)
 
 # Define the nodes we will cycle between
 builder.add_node("generate_query", generate_query)
-builder.add_node("web_research", web_research)
-builder.add_node("reflection", reflection)
-builder.add_node("finalize_answer", finalize_answer)
+builder.add_node("retrieve_from_docs", retrieve_from_docs)   # ← NEW
+builder.add_node("web_research",     web_research)
+builder.add_node("reflection",       reflection)
+builder.add_node("finalize_answer",  finalize_answer)
 
 # Set the entrypoint as `generate_query`
 # This means that this node is the first one called
+# ── Wiring section ───────────────────────────────────────────
 builder.add_edge(START, "generate_query")
-# Add conditional edge to continue with search queries in a parallel branch
-builder.add_conditional_edges(
-    "generate_query", continue_to_web_research, ["web_research"]
-)
-# Reflect on the web research
+builder.add_edge("generate_query", "retrieve_from_docs")
+builder.add_edge("retrieve_from_docs", "reflection")
 builder.add_edge("web_research", "reflection")
-# Evaluate the research
+
+# 📌 use the new router here
 builder.add_conditional_edges(
-    "reflection", evaluate_research, ["web_research", "finalize_answer"]
+    "reflection",
+    decide_after_reflection,                 # NEW
+    ["web_research", "finalize_answer"]
 )
-# Finalize the answer
+
 builder.add_edge("finalize_answer", END)
+
 
 graph = builder.compile(name="pro-search-agent")

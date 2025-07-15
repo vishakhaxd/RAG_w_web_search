@@ -174,6 +174,10 @@
   opacity: 0.3;
   transition: opacity 0.2s ease;
 }
+.rag-source {
+  color: #f63bb5;   
+  font-weight: 600;
+}
 
 [data-slot="scroll-area"]:hover [data-slot="scroll-area-scrollbar"] {
   opacity: 0.6;

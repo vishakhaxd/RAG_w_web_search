@@ -1,4 +1,5 @@
 import type React from "react";
+import rehypeRaw from "rehype-raw"; 
 import type { Message } from "@langchain/langgraph-sdk";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Copy, CopyCheck } from "lucide-react";
@@ -19,6 +20,9 @@ type MdComponentProps = {
   children?: ReactNode;
   [key: string]: any;
 };
+
+const colourRag = (t: string) =>
+  t.replace(/rag:\/\/([^\s\]]+)/g, "<span class='rag-source'>rag://$1</span>");
 
 // Markdown components (from former ReportView.tsx)
 const mdComponents = {
@@ -149,10 +153,15 @@ const HumanMessageBubble: React.FC<HumanMessageBubbleProps> = ({
     <div
       className={`text-white rounded-3xl break-words min-h-7 bg-neutral-700 max-w-[100%] sm:max-w-[90%] px-4 pt-3 rounded-br-lg`}
     >
-      <ReactMarkdown components={mdComponents}>
-        {typeof message.content === "string"
-          ? message.content
-          : JSON.stringify(message.content)}
+      <ReactMarkdown
+        components={mdComponents}
+        rehypePlugins={[rehypeRaw]}            // ← NEW
+      >
+        {colourRag(                           // ← wrap
+          typeof message.content === "string"
+            ? message.content
+            : JSON.stringify(message.content)
+        )}
       </ReactMarkdown>
     </div>
   );
@@ -196,10 +205,15 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
           />
         </div>
       )}
-      <ReactMarkdown components={mdComponents}>
-        {typeof message.content === "string"
-          ? message.content
-          : JSON.stringify(message.content)}
+            <ReactMarkdown
+        components={mdComponents}
+        rehypePlugins={[rehypeRaw]}            // ← NEW
+      >
+        {colourRag(                           // ← wrap
+          typeof message.content === "string"
+            ? message.content
+            : JSON.stringify(message.content)
+        )}
       </ReactMarkdown>
       <Button
         variant="default"

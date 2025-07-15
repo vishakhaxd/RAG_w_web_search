@@ -27,6 +27,7 @@ class ReflectionState(TypedDict):
     follow_up_queries: Annotated[list, operator.add]
     research_loop_count: int
     number_of_ran_queries: int
+    search_query: list[Query]
 
 
 class Query(TypedDict):
