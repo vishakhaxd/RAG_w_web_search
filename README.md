@@ -1,8 +1,6 @@
-Here’s a clean, rewritten version of your **README** that highlights your addition of **RAG + web search**, while making the setup instructions clearer and more direct:
 
----
 
-# 🔮 Gemini + RAG Fullstack LangGraph App
+#  Gemini + RAG Fullstack LangGraph App
 
 This project demonstrates a **fullstack AI research assistant** powered by **Google Gemini** and **LangGraph**, enhanced with a **Retrieval-Augmented Generation (RAG)** layer and integrated **web search**.
 
@@ -163,6 +161,3 @@ docker-compose up
 
 Licensed under Apache 2.0 — see [LICENSE](LICENSE).
 
----
-
-Would you like me to include a short “RAG architecture diagram” section (showing Gemini + Web + Vector DB flow) to make the README more visually complete?
