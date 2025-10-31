@@ -1,120 +1,168 @@
-# Gemini Fullstack LangGraph Quickstart
+Here’s a clean, rewritten version of your **README** that highlights your addition of **RAG + web search**, while making the setup instructions clearer and more direct:
 
-This project demonstrates a fullstack application using a React frontend and a LangGraph-powered backend agent. The agent is designed to perform comprehensive research on a user's query by dynamically generating search terms, querying the web using Google Search, reflecting on the results to identify knowledge gaps, and iteratively refining its search until it can provide a well-supported answer with citations. This application serves as an example of building research-augmented conversational AI using LangGraph and Google's Gemini models.
+---
+
+# 🔮 Gemini + RAG Fullstack LangGraph App
+
+This project demonstrates a **fullstack AI research assistant** powered by **Google Gemini** and **LangGraph**, enhanced with a **Retrieval-Augmented Generation (RAG)** layer and integrated **web search**.
+
+The system dynamically generates search queries, retrieves external and local knowledge, identifies knowledge gaps, and iteratively refines its reasoning to deliver a final, well-supported answer — complete with citations.
 
 <img src="./app.png" title="Gemini Fullstack LangGraph" alt="Gemini Fullstack LangGraph" width="90%">
 
-## Features
+---
 
-- 💬 Fullstack application with a React frontend and LangGraph backend.
-- 🧠 Powered by a LangGraph agent for advanced research and conversational AI.
-- 🔍 Dynamic search query generation using Google Gemini models.
-- 🌐 Integrated web research via Google Search API.
-- 🤔 Reflective reasoning to identify knowledge gaps and refine searches.
-- 📄 Generates answers with citations from gathered sources.
-- 🔄 Hot-reloading for both frontend and backend during development.
+## 🚀 Features
 
-## Project Structure
+* 🧠 **Gemini + RAG Agent** — combines Gemini models with a local/vector-based retrieval layer.
+* 🌍 **Web Search Integration** — dynamically queries the web using Google Search API for fresh information.
+* 🔁 **Iterative Research Loop** — identifies missing information and refines queries until sufficient coverage is achieved.
+* 💬 **Fullstack Setup** — React frontend + LangGraph backend for a complete conversational experience.
+* 🧩 **Hot Reloading** for both frontend and backend during development.
 
-The project is divided into two main directories:
+---
 
--   `frontend/`: Contains the React application built with Vite.
--   `backend/`: Contains the LangGraph/FastAPI application, including the research agent logic.
+## 📂 Project Structure
 
-## Getting Started: Development and Local Testing
+* `frontend/`: React + Vite web app.
+* `backend/`: FastAPI + LangGraph backend containing the Gemini RAG agent.
 
-Follow these steps to get the application running locally for development and testing.
+---
 
-**1. Prerequisites:**
+## ⚙️ Getting Started
 
--   Node.js and npm (or yarn/pnpm)
--   Python 3.11+
--   **`GEMINI_API_KEY`**: The backend agent requires a Google Gemini API key.
-    1.  Navigate to the `backend/` directory.
-    2.  Create a file named `.env` by copying the `backend/.env.example` file.
-    3.  Open the `.env` file and add your Gemini API key: `GEMINI_API_KEY="YOUR_ACTUAL_API_KEY"`
+### 1️⃣ Prerequisites
 
-**2. Install Dependencies:**
+You’ll need:
 
-**Backend:**
+* **Node.js (v18+)** and **npm** (or yarn/pnpm)
+* **Python 3.11+**
+* API Keys:
+
+  * `GEMINI_API_KEY` (Google AI)
+  * *(Optional)* `GOOGLE_SEARCH_API_KEY` for web search
+
+---
+
+### 2️⃣ Setup
+
+#### Backend
 
 ```bash
 cd backend
+cp .env.example .env
+# Add your keys
+echo 'GEMINI_API_KEY="your_gemini_key"' >> .env
+echo 'GOOGLE_SEARCH_API_KEY="your_search_key"' >> .env
 pip install .
 ```
 
-**Frontend:**
+#### Frontend
 
 ```bash
 cd frontend
 npm install
 ```
 
-**3. Run Development Servers:**
+---
 
-**Backend & Frontend:**
+### 3️⃣ Run Locally
+
+Run both backend and frontend together:
 
 ```bash
 make dev
 ```
-This will run the backend and frontend development servers.    Open your browser and navigate to the frontend development server URL (e.g., `http://localhost:5173/app`).
 
-_Alternatively, you can run the backend and frontend development servers separately. For the backend, open a terminal in the `backend/` directory and run `langgraph dev`. The backend API will be available at `http://127.0.0.1:2024`. It will also open a browser window to the LangGraph UI. For the frontend, open a terminal in the `frontend/` directory and run `npm run dev`. The frontend will be available at `http://localhost:5173`._
+Then open [http://localhost:5173/app](http://localhost:5173/app)
 
-## How the Backend Agent Works (High-Level)
+Or run them separately:
 
-The core of the backend is a LangGraph agent defined in `backend/src/agent/graph.py`. It follows these steps:
+**Backend:**
+
+```bash
+cd backend
+langgraph dev
+```
+
+→ API: [http://127.0.0.1:2024](http://127.0.0.1:2024)
+
+**Frontend:**
+
+```bash
+cd frontend
+npm run dev
+```
+
+→ UI: [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🧩 How It Works
+
+The core agent (`backend/src/agent/graph.py`) follows this pipeline:
 
 <img src="./agent.png" title="Agent Flow" alt="Agent Flow" width="50%">
 
-1.  **Generate Initial Queries:** Based on your input, it generates a set of initial search queries using a Gemini model.
-2.  **Web Research:** For each query, it uses the Gemini model with the Google Search API to find relevant web pages.
-3.  **Reflection & Knowledge Gap Analysis:** The agent analyzes the search results to determine if the information is sufficient or if there are knowledge gaps. It uses a Gemini model for this reflection process.
-4.  **Iterative Refinement:** If gaps are found or the information is insufficient, it generates follow-up queries and repeats the web research and reflection steps (up to a configured maximum number of loops).
-5.  **Finalize Answer:** Once the research is deemed sufficient, the agent synthesizes the gathered information into a coherent answer, including citations from the web sources, using a Gemini model.
+1. **Initial Query Generation:** Uses Gemini to expand the user prompt into several targeted queries.
+2. **Web & RAG Retrieval:** Fetches information from the web (Google Search API) and a local RAG vector store.
+3. **Reflection Loop:** The agent reviews results, identifies knowledge gaps, and generates refined queries.
+4. **Iteration:** Continues search and reflection until coverage is complete or iteration limit is reached.
+5. **Answer Synthesis:** Produces a coherent answer with citations using Gemini.
 
-## CLI Example
+---
 
-For quick one-off questions you can execute the agent from the command line. The
-script `backend/examples/cli_research.py` runs the LangGraph agent and prints the
-final answer:
+## 💻 CLI Example
+
+Run the research agent directly from the command line:
 
 ```bash
 cd backend
 python examples/cli_research.py "What are the latest trends in renewable energy?"
 ```
 
+---
 
-## Deployment
+## 🐳 Deployment
 
-In production, the backend server serves the optimized static frontend build. LangGraph requires a Redis instance and a Postgres database. Redis is used as a pub-sub broker to enable streaming real time output from background runs. Postgres is used to store assistants, threads, runs, persist thread state and long term memory, and to manage the state of the background task queue with 'exactly once' semantics. For more details on how to deploy the backend server, take a look at the [LangGraph Documentation](https://langchain-ai.github.io/langgraph/concepts/deployment_options/). Below is an example of how to build a Docker image that includes the optimized frontend build and the backend server and run it via `docker-compose`.
+For production deployment, the backend serves the optimized frontend build.
 
-_Note: For the docker-compose.yml example you need a LangSmith API key, you can get one from [LangSmith](https://smith.langchain.com/settings)._
+LangGraph requires **Postgres** (state + queue) and **Redis** (pub/sub).
+Update your `.env` accordingly, then:
 
-_Note: If you are not running the docker-compose.yml example or exposing the backend server to the public internet, you should update the `apiUrl` in the `frontend/src/App.tsx` file to your host. Currently the `apiUrl` is set to `http://localhost:8123` for docker-compose or `http://localhost:2024` for development._
+**Build the Docker image:**
 
-**1. Build the Docker Image:**
+```bash
+docker build -t gemini-rag-langgraph -f Dockerfile .
+```
 
-   Run the following command from the **project root directory**:
-   ```bash
-   docker build -t gemini-fullstack-langgraph -f Dockerfile .
-   ```
-**2. Run the Production Server:**
+**Run via docker-compose:**
 
-   ```bash
-   GEMINI_API_KEY=<your_gemini_api_key> LANGSMITH_API_KEY=<your_langsmith_api_key> docker-compose up
-   ```
+```bash
+GEMINI_API_KEY=<your_gemini_api_key> \
+GOOGLE_SEARCH_API_KEY=<your_search_key> \
+LANGSMITH_API_KEY=<your_langsmith_api_key> \
+docker-compose up
+```
 
-Open your browser and navigate to `http://localhost:8123/app/` to see the application. The API will be available at `http://localhost:8123`.
+→ App: [http://localhost:8123/app](http://localhost:8123/app)
+→ API: [http://localhost:8123](http://localhost:8123)
 
-## Technologies Used
+---
 
-- [React](https://reactjs.org/) (with [Vite](https://vitejs.dev/)) - For the frontend user interface.
-- [Tailwind CSS](https://tailwindcss.com/) - For styling.
-- [Shadcn UI](https://ui.shadcn.com/) - For components.
-- [LangGraph](https://github.com/langchain-ai/langgraph) - For building the backend research agent.
-- [Google Gemini](https://ai.google.dev/models/gemini) - LLM for query generation, reflection, and answer synthesis.
+## 🧰 Tech Stack
 
-## License
+* **Frontend:** React (Vite) + Tailwind + Shadcn UI
+* **Backend:** FastAPI + LangGraph + Gemini API
+* **Retrieval:** FAISS / Chroma vector DB
+* **Infra:** Redis, Postgres, Docker
 
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details. 
+---
+
+## 📜 License
+
+Licensed under Apache 2.0 — see [LICENSE](LICENSE).
+
+---
+
+Would you like me to include a short “RAG architecture diagram” section (showing Gemini + Web + Vector DB flow) to make the README more visually complete?
